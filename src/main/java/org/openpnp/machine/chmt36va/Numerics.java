@@ -1,54 +1,45 @@
 package org.openpnp.machine.chmt36va;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 public class Numerics {
 
-    public static class PositionReport implements CHMT36VADriver.Packet {
+    public static class PositionReport implements Packet {
         public int startX;
         public int startY;
         public int deltaX;
         public int deltaY;
-        public int curDeviceSelId;
-        public int curDebugSpeed;
+        public byte curDeviceSelId;
+        public byte curDebugSpeed;
+        public byte unknown1 = (byte) 0xff;
+        public byte unknown2 = (byte) 0xff;
         
+        public int getTableId() {
+            return 7;
+        }
+
+        // packetType 0x80
         public byte[] encode() throws Exception {
-            ByteBuffer buffer = ByteBuffer.allocate(37);
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            
-            buffer.put(CHMT36VADriver.HEADER);      // header
-            buffer.put((byte) 0x80);                // packet type
-            buffer.putShort((short) 20);            // payload length
-            buffer.put((byte) 0xd9);                // encryption key
-            buffer.put((byte) 0x00);                // unknown1
-            buffer.putShort((short) 7);             // table id
-            buffer.putInt(startX);
-            buffer.putInt(startY);
-            buffer.putInt(deltaX);
-            buffer.putInt(deltaY);
-            buffer.put((byte) curDeviceSelId);
-            buffer.put((byte) curDebugSpeed);
-            buffer.put((byte) 0xff);                // unknown
-            buffer.put((byte) 0xff);                // unknown
-            buffer.putShort((short) 
-                    CHMT36VADriver.crc16(buffer.array(), 11, 20));  // CRC
-            buffer.put(CHMT36VADriver.FOOTER);                     // footer
-            
-            System.out.println(CHMT36VADriver.bytesToHexString(buffer.array()));
-    
-            CHMT36VADriver.encryptFrame(buffer.array(), CHMT36VADriver.key1, CHMT36VADriver.key2);
-            
-            return buffer.array();
+            byte[] bytes = new byte[20];
+            Protocol.writeInt32(bytes, 0, startX);
+            Protocol.writeInt32(bytes, 4, startY);
+            Protocol.writeInt32(bytes, 8, deltaX);
+            Protocol.writeInt32(bytes, 12, deltaY);
+            bytes[16] = curDeviceSelId;
+            bytes[17] = curDebugSpeed;
+            bytes[18] = unknown1;
+            bytes[19] = unknown2;
+            return bytes;
         }
         
-        public void decode(ByteBuffer bytes) throws Exception {
-            startX = bytes.getInt(11);
-            startY = bytes.getInt(15);
-            deltaX = bytes.getInt(19);
-            deltaY = bytes.getInt(23);
-            curDeviceSelId = bytes.get(27);
-            curDebugSpeed = bytes.get(28);
+        public void decode(byte[] bytes) throws Exception {
+            startX = Protocol.readInt32(bytes, 0);
+            startY = Protocol.readInt32(bytes, 4);
+            deltaX = Protocol.readInt32(bytes, 8);
+            deltaY = Protocol.readInt32(bytes, 12);
+            curDeviceSelId = bytes[16];
+            curDebugSpeed = bytes[17];
+            // These seem to be sent but not received.
+//            unknown1 = bytes[18];
+//            unknown2 = bytes[19];
         }
         
         @Override

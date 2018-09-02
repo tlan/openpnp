@@ -1,28 +1,30 @@
 package org.openpnp.machine.chmt36va;
 
-import java.nio.ByteBuffer;
-
 public class Statuses {
 
     /**
      * Seems to be sent after every command. Think it might be alarm status or just machine status.
      * Have noticed in dumps that the first byte changed during a job, maybe during an error.
      */
-    public static class UnknownStatus1 implements CHMT36VADriver.Packet {
-        public int a;
-        public int b;
-        public int c;
-        public int d;
+    public static class UnknownStatus1 implements Packet {
+        public byte a; // I think 1 might be idle, and 3 might be machine is moving
+        public byte b;
+        public byte c;
+        public byte d;
+        
+        public int getTableId() {
+            return 32;
+        }
         
         public byte[] encode() throws Exception {
             return null;
         }
         
-        public void decode(ByteBuffer bytes) throws Exception {
-            a = bytes.get(11) & 0xff;
-            b = bytes.get(12) & 0xff;
-            c = bytes.get(13) & 0xff;
-            d = bytes.get(14) & 0xff;
+        public void decode(byte[] bytes) throws Exception {
+            a = bytes[0];
+            b = bytes[1];
+            c = bytes[2];
+            d = bytes[3];
         }
         
         @Override
