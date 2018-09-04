@@ -1,8 +1,10 @@
 package org.openpnp.machine.chmt36va;
 import java.io.File;
 
-import org.openpnp.machine.chmt36va.Commands.CmdToSetPos;
 import org.openpnp.machine.chmt36va.Numerics.PositionReport;
+import org.openpnp.machine.chmt36va.packets.CmdToOrigZeroVCmdToOrigZeroNoV;
+import org.openpnp.machine.chmt36va.packets.CmdToOrigZeroVCmdToOrigZeroNoV.Values;
+import org.openpnp.machine.chmt36va.packets.CmdToSetPos;
 
 import jssc.SerialPort;
 
@@ -23,7 +25,7 @@ public class CHMT36VADriverTest implements Runnable {
         // start reader thread
         new Thread(new CHMT36VADriverTest()).start();
         
-        Commands.CmdToOrigZero cmd = new Commands.CmdToOrigZero();
+        CmdToOrigZeroVCmdToOrigZeroNoV cmd = new CmdToOrigZeroVCmdToOrigZeroNoV();
         send(cmd);
         Thread.sleep(15 * 1000);
         

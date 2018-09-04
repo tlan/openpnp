@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openpnp.machine.chmt36va.packets.Packets;
+
 
 //tableId,packetId,direction
 //001,000,R
@@ -48,13 +50,14 @@ public class Protocol {
     static List<Packet> packetTypes = new ArrayList<>();
     
     static {
-        packetTypes.add(new Commands.CmdDownLamp());
-        packetTypes.add(new Commands.CmdReqProcessInfo());
-        packetTypes.add(new Commands.CmdToOrigZero());
-        packetTypes.add(new Commands.CmdToSetPos());
-        packetTypes.add(new Commands.CmdUpLamp());
-        packetTypes.add(new Numerics.PositionReport());
+//        packetTypes.add(new Commands.CmdDownLamp());
+//        packetTypes.add(new Commands.CmdReqProcessInfo());
+//        packetTypes.add(new Commands.CmdToOrigZero());
+//        packetTypes.add(new Commands.CmdToSetPos());
+//        packetTypes.add(new Commands.CmdUpLamp());
+//        packetTypes.add(new Numerics.PositionReport());
         packetTypes.add(new Statuses.UnknownStatus1());
+        Packets.register(packetTypes);
     }
     
     public Protocol(File licenseFile) throws Exception {
@@ -93,22 +96,22 @@ public class Protocol {
         decrypt(bytes);
         
         // Check the CRC
-        int crc = readInt16(bytes, bytes.length - 6);
+        int crc = readUint16(bytes, bytes.length - 6);
         int crcCalc = crc16(bytes, 11, bytes.length - 6 - 11);
         if (crc != crcCalc) {
             throw new Exception(String.format("Invalid CRC: %04x != %04x", crc, crcCalc));
         }
 
         // Extract the tableId so we can determine what kind of packet this is
-        int payloadLength = readInt16(bytes, 5);
-        int tableId = readInt16(bytes, 9);
+        int payloadLength = readUint16(bytes, 5);
+        int tableId = readUint16(bytes, 9);
         
         // Look up the packet type and create one.
         Packet p = null;
         for (Packet packetType : packetTypes) {
             if (tableId == packetType.getTableId()) {
                 if (packetType instanceof Command) {
-                    int paramId = readInt16(bytes, 11);
+                    int paramId = readUint16(bytes, 11);
                     if (paramId == ((Command) packetType).getParamId()) {
                         p = packetType.getClass().newInstance();
                         break;
@@ -155,22 +158,22 @@ public class Protocol {
         System.arraycopy(HEADER, 0, bytes, 0, 4);
         if (packet instanceof Command) {
             bytes[4] = 0x11;
-            writeInt16(bytes, 5, payload.length + 2);
+            writeUint16(bytes, 5, payload.length + 2);
             bytes[7] = 0;
             bytes[8] = 0;
-            writeInt16(bytes, 9, packet.getTableId());
-            writeInt16(bytes, 11, ((Command) packet).getParamId());
+            writeUint16(bytes, 9, packet.getTableId());
+            writeUint16(bytes, 11, ((Command) packet).getParamId());
             System.arraycopy(payload, 0, bytes, 13, payload.length);
         }
         else {
             bytes[4] = (byte) 0x80;
-            writeInt16(bytes, 5, payload.length);
+            writeUint16(bytes, 5, payload.length);
             bytes[7] = 0;
             bytes[8] = 0;
-            writeInt16(bytes, 9, packet.getTableId());
+            writeUint16(bytes, 9, packet.getTableId());
             System.arraycopy(payload, 0, bytes, 11, payload.length);
         }
-        writeInt16(bytes, bytes.length - 6, crc16(bytes, 11, bytes.length - 6 - 11));
+        writeUint16(bytes, bytes.length - 6, crc16(bytes, 11, bytes.length - 6 - 11));
         System.arraycopy(FOOTER, 0, bytes, bytes.length - 4, 4);
         
         encrypt(bytes);
@@ -292,24 +295,20 @@ public class Protocol {
     }
     
     public static int readInt32(byte[] bytes, int offset) {
-        // TODO STOPSHIP hack to get this finished for now, convert to direct read later.
-        ByteBuffer b = ByteBuffer.wrap(bytes);
-        b.order(ByteOrder.LITTLE_ENDIAN);
-        return b.getInt(offset);
+        return ((bytes[offset + 3] & 0xff) << 24) 
+                | ((bytes[offset + 2] & 0xff) << 16)
+                | ((bytes[offset + 1] & 0xff) << 8) 
+                | ((bytes[offset + 0] & 0xff) << 0);
     }
     
-    public static void writeInt16(byte[] bytes, int offset, int value) {
-        // TODO STOPSHIP hack to get this finished for now, convert to direct read later.
-        ByteBuffer b = ByteBuffer.wrap(bytes);
-        b.order(ByteOrder.LITTLE_ENDIAN);
-        b.putShort(offset, (short) value);
+    public static void writeUint16(byte[] bytes, int offset, int value) {
+        bytes[offset + 0] = (byte) ((value >> 0) & 0xff);
+        bytes[offset + 1] = (byte) ((value >> 8) & 0xff);
     }
     
-    public static int readInt16(byte[] bytes, int offset) {
-        // TODO STOPSHIP hack to get this finished for now, convert to direct read later.
-        ByteBuffer b = ByteBuffer.wrap(bytes);
-        b.order(ByteOrder.LITTLE_ENDIAN);
-        return b.getShort(offset);
+    public static int readUint16(byte[] bytes, int offset) {
+        return (((bytes[offset + 1] & 0xff) << 8) 
+                | (bytes[offset] & 0xff)) & 0xffff;
     }
     
     public static int crc16(byte[] packet, int offset, int length) {

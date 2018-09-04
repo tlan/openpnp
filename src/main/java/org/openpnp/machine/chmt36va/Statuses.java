@@ -29,8 +29,8 @@ public class Statuses {
         
         @Override
         public String toString() {
-            return String.format("a %d, b %d, c %d, d %d", 
-                    a, b, c, d);
+            return String.format("%s (a = %d, b = %d, c = %d, d = %d)", 
+                    getClass().getSimpleName(), a, b, c, d);
         }
     }
 
