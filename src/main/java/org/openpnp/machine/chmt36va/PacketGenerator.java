@@ -62,11 +62,6 @@ public class PacketGenerator {
         throw new Error("Unknown dataTypeId " + dataTypeId);
     }
     
-    static String sanitizeSymbol(String s) {
-        s = s.replace('/', '_');
-        return s;
-    }
-
     static void generateEncode(PrintWriter writer, int dataTypeId) {
         switch (dataTypeId) {
             case 1:
@@ -224,7 +219,7 @@ public class PacketGenerator {
             param.paramId = Integer.parseInt(fields[2].trim());
             param.paramSymbol = fields[3].trim();
             if (param.paramSymbol.equals("/")) {
-                continue;
+                param.paramSymbol = "Command_" + param.tableId + "_" + param.paramId;
             }
             param.dataTypeId = Integer.parseInt(fields[4].trim());
             if (fields[5].trim().equals("n")) {
@@ -279,30 +274,33 @@ public class PacketGenerator {
         List<NumericParam> params = new ArrayList<>();
         List<String> lines = Files.readAllLines(file.toPath());
         lines.remove(0);
+        int unknownSymbolCount = 0;
         for (String line : lines) {
             String[] fields = line.split(",");
             NumericParam param = new NumericParam();
             param.type = Integer.parseInt(fields[0].trim());
             param.tableId = Integer.parseInt(fields[1].trim());
-            param.paramId = Integer.parseInt(fields[2].trim());
-            param.paramSymbol = sanitizeSymbol(fields[3].trim());
-            // TODO STOPSHIP need to handle these by looking at the byteNum so we can keep
-            // the right offsets, or maybe just use byteNum and remark for the encode/decode.
-            if (fields[4].trim().equals("/")) {
+            if (param.tableId == 1) {
                 continue;
+            }
+            param.paramId = Integer.parseInt(fields[2].trim());
+            param.paramSymbol = fields[3].trim();
+            if (param.paramSymbol.equals("/")) {
+                param.paramSymbol = "Unknown_" + unknownSymbolCount++;
             }
             param.dataTypeId = Integer.parseInt(fields[4].trim());
-            if (fields[5].trim().isEmpty()) {
-                continue;
+            try {
+                param.dimension = Integer.parseInt(fields[5].trim());
             }
-            if (fields[5].trim().equals("/")) {
-                continue;
+            catch (Exception e) {
+                System.out.println(String.format("Skipping invalid dimension for %d, %d", param.tableId, param.paramId));
             }
-            param.dimension = Integer.parseInt(fields[5].trim());
-            if (fields[6].trim().equals("/")) {
-                continue;
+            try {
+                param.unitId = Integer.parseInt(fields[6].trim());
             }
-            param.unitId = Integer.parseInt(fields[6].trim());
+            catch (Exception e) {
+                System.out.println(String.format("Skipping invalid unit for %d, %d", param.tableId, param.paramId));
+            }
             params.add(param);
         }
         HashMap<String, List<NumericParam>> partitioned = new HashMap<>();
