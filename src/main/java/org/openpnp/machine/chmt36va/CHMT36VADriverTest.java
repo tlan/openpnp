@@ -2,8 +2,6 @@ package org.openpnp.machine.chmt36va;
 import java.io.File;
 
 import org.openpnp.machine.chmt36va.Numerics.PositionReport;
-import org.openpnp.machine.chmt36va.packets.CmdToOrigZeroVCmdToOrigZeroNoV;
-import org.openpnp.machine.chmt36va.packets.CmdToOrigZeroVCmdToOrigZeroNoV.Values;
 import org.openpnp.machine.chmt36va.packets.CmdToSetPos;
 
 import jssc.SerialPort;
@@ -25,23 +23,56 @@ public class CHMT36VADriverTest implements Runnable {
         // start reader thread
         new Thread(new CHMT36VADriverTest()).start();
         
-        CmdToOrigZeroVCmdToOrigZeroNoV cmd = new CmdToOrigZeroVCmdToOrigZeroNoV();
-        send(cmd);
-        Thread.sleep(15 * 1000);
+//        CmdToOrigZeroVCmdToOrigZeroNoV cmd = new CmdToOrigZeroVCmdToOrigZeroNoV();
+//        send(cmd);
+//        Thread.sleep(15 * 1000);
         
-        moveTo(100, 100);
-        Thread.sleep(2000);
-        
-        for (int i = 0; i < 5; i++) {
-            moveTo(100, 200);
-            Thread.sleep(500);
-            moveTo(200, 200);
-            Thread.sleep(500);
-            moveTo(200, 100);
-            Thread.sleep(500);
-            moveTo(100, 100);
+//        moveTo(200, 200);
+//        Thread.sleep(2000);
+
+        /**
+         * curDeviceSelId:
+         * 3 = head camera
+         * 2 = right nozzle
+         * 1 = left nozzle
+         * 0 = nothing?
+         */
+        byte unknown1 = (byte) 0;
+        byte unknown2 = (byte) 0;
+        while (true) {
+            moveTo(200, 200, (byte) 2, (byte) 1, unknown1, unknown2);
+//            unknown1 += 10;
+//            unknown2 += 10;
             Thread.sleep(500);
         }
+        
+//        Thread.sleep(2000);
+//        
+//        for (int i = 0; i < 5; i++) {
+//            moveTo(100, 200);
+//            Thread.sleep(500);
+//            moveTo(200, 200);
+//            Thread.sleep(500);
+//            moveTo(200, 100);
+//            Thread.sleep(500);
+//            moveTo(100, 100);
+//            Thread.sleep(500);
+//        }
+    }
+    
+    public static void moveTo(double x, double y, byte curDeviceSelId, byte debugSpeed, byte unknown1, byte unknown2) throws Exception {
+        PositionReport p = new PositionReport();
+        p.startX = (int) (x * 100.);
+        p.startY = (int) (y * 100.);
+        p.deltaX = 0;
+        p.deltaY = 0;
+        p.curDeviceSelId = curDeviceSelId;
+        p.curDebugSpeed = debugSpeed;
+        p.unknown1 = unknown1;
+        p.unknown2 = unknown2;
+        send(p);
+        CmdToSetPos p1 = new CmdToSetPos();
+        send(p1);
     }
     
     public static void moveTo(double x, double y) throws Exception {

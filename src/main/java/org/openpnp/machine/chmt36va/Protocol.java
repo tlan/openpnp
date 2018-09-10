@@ -7,8 +7,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.openpnp.machine.chmt36va.packets.Packets;
-
 
 //tableId,packetId,direction
 //001,000,R
@@ -50,18 +48,20 @@ public class Protocol {
     static List<Packet> packetTypes = new ArrayList<>();
     
     static {
-//        packetTypes.add(new Commands.CmdDownLamp());
-//        packetTypes.add(new Commands.CmdReqProcessInfo());
-//        packetTypes.add(new Commands.CmdToOrigZero());
-//        packetTypes.add(new Commands.CmdToSetPos());
-//        packetTypes.add(new Commands.CmdUpLamp());
-//        packetTypes.add(new Numerics.PositionReport());
+        packetTypes.add(new Commands.CmdDownLamp());
+        packetTypes.add(new Commands.CmdReqProcessInfo());
+        packetTypes.add(new Commands.CmdToOrigZero());
+        packetTypes.add(new Commands.CmdToSetPos());
+        packetTypes.add(new Commands.CmdUpLamp());
+        packetTypes.add(new Numerics.PositionReport());
         packetTypes.add(new Statuses.UnknownStatus1());
-        Packets.register(packetTypes);
+//        Packets.register(packetTypes);
     }
     
     public Protocol(File licenseFile) throws Exception {
         loadKeys(licenseFile);
+        System.out.println(bytesToHexString(key1));
+        System.out.println(bytesToHexString(key2));
     }
     
     private void loadKeys(File licenseFile) throws Exception
