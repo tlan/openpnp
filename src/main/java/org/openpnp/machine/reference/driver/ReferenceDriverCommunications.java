@@ -38,4 +38,7 @@ public interface ReferenceDriverCommunications {
 
     String readLine() throws TimeoutException, IOException;
     void writeLine(String data) throws IOException;
+    
+    public int read() throws TimeoutException, IOException;
+    public void write(int d) throws IOException;
 }

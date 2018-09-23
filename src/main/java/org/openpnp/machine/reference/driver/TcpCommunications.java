@@ -10,6 +10,8 @@ import java.util.concurrent.TimeoutException;
 
 import org.simpleframework.xml.Attribute;
 
+import jssc.SerialPortTimeoutException;
+
 /**
  * A base class for basic TCP based Drivers. Includes functions for connecting,
  * disconnecting, reading and sending lines.
@@ -92,6 +94,22 @@ public class TcpCommunications implements ReferenceDriverCommunications {
         catch (IOException ex) {
             throw ex;
         }
+    }
+
+    public int read() throws TimeoutException, IOException {
+        try {
+            return input.read();
+        }
+        catch (IOException ex) {
+            if (ex.getCause() instanceof SocketTimeoutException) {
+                throw new TimeoutException(ex.getMessage());
+            }
+            throw ex;
+        }
+    }
+    
+    public void write(int d) throws IOException {
+        output.write(d);
     }
 
     public String getIpAddress() {

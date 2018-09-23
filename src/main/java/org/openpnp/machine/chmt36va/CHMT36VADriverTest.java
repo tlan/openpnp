@@ -1,8 +1,8 @@
 package org.openpnp.machine.chmt36va;
 import java.io.File;
 
+import org.openpnp.machine.chmt36va.Commands.CmdToSetPos;
 import org.openpnp.machine.chmt36va.Numerics.PositionReport;
-import org.openpnp.machine.chmt36va.packets.CmdToSetPos;
 
 import jssc.SerialPort;
 

@@ -60,8 +60,6 @@ public class Protocol {
     
     public Protocol(File licenseFile) throws Exception {
         loadKeys(licenseFile);
-        System.out.println(bytesToHexString(key1));
-        System.out.println(bytesToHexString(key2));
     }
     
     private void loadKeys(File licenseFile) throws Exception
