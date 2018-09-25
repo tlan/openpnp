@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.openpnp.gui.support.PropertySheetWizardAdapter;
@@ -258,9 +259,8 @@ public class CHMT36VADriver extends AbstractReferenceDriver implements Named, Ru
             rotation = this.rotation;
         }
         
+        responseQueue.clear();
         if (x != this.x || y != this.y) {
-            responseQueue.clear();
-            
             PositionReport report = new PositionReport();
             report.startX = (int) (x * 100.);
             report.startY = (int) (y * 100.);
@@ -272,20 +272,10 @@ public class CHMT36VADriver extends AbstractReferenceDriver implements Named, Ru
             CmdToSetPos cmd = new CmdToSetPos();
             send(cmd);
 
-            Logger.debug("Wait for move to complete.");
-            while (true) {
-                Packet p = responseQueue.take();
-                if (p instanceof CmdReqProcessInfo) {
-                    break;
-                }
-                else if (p instanceof UnknownStatus1) {
-                    UnknownStatus1 status = (UnknownStatus1) p;
-                    if (status.a == 1) {
-                        break;
-                    }
-                }
+            Packet p = expect(CmdReqProcessInfo.class, 2000);
+            if (p == null) {
+                Logger.warn("Move timed out. Ignoring it until we know more.");
             }
-            Logger.debug("Move complete!");
             
             this.x = x;
             this.y = y;
@@ -435,6 +425,18 @@ public class CHMT36VADriver extends AbstractReferenceDriver implements Named, Ru
     public Packet expect(Class<? extends Packet> c) throws InterruptedException {
         while (true) {
             Packet p = responseQueue.take();
+            if (p.getClass().equals(c)) {
+                return p;
+            }
+        }
+    }
+
+    public Packet expect(Class<? extends Packet> c, long millisecondsToWait) throws InterruptedException {
+        while (true) {
+            Packet p = responseQueue.poll(millisecondsToWait, TimeUnit.MILLISECONDS);
+            if (p == null) {
+                return null;
+            }
             if (p.getClass().equals(c)) {
                 return p;
             }
