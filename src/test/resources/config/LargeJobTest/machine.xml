@@ -1,0 +1,64 @@
+<!--
+    Legend:
+        Actuator:   .
+        Nozzle:     *
+        Camera:     o
+
+    Sample Machine Head Looks like:
+        .    o
+        
+        *    *
+ -->
+ <openpnp-machine>
+   <machine class="org.openpnp.machine.reference.ReferenceMachine">
+      <driver class="org.openpnp.machine.reference.driver.test.TestDriver"/>
+      <heads>
+        <head class="org.openpnp.machine.reference.ReferenceHead" id="H1">
+            <nozzles>
+                <nozzle class="org.openpnp.machine.reference.ReferenceNozzle" id="N1" current-nozzle-tip-id="NT1" changer-enabled="true">
+                    <head-offsets x="10" y="0" z="0" rotation="0" units="Millimeters" />
+                    <nozzle-tips>
+                    	<nozzle-tip class="org.openpnp.machine.reference.ReferenceNozzleTip" id="NT1" allow-incompatible-packages="false">
+                    		<compatible-package-ids>
+                    			<id>R0603</id>
+                    		</compatible-package-ids>
+                    	</nozzle-tip>
+                    	<nozzle-tip class="org.openpnp.machine.reference.ReferenceNozzleTip" id="NT2" allow-incompatible-packages="false">
+                    	</nozzle-tip>
+                    </nozzle-tips>
+                </nozzle>
+                <nozzle class="org.openpnp.machine.reference.ReferenceNozzle" id="N2" current-nozzle-tip-id="NT1" changer-enabled="true">
+                    <head-offsets x="10" y="0" z="0" rotation="0" units="Millimeters" />
+                    <nozzle-tips>
+                    	<nozzle-tip class="org.openpnp.machine.reference.ReferenceNozzleTip" id="NT1" allow-incompatible-packages="false">
+                    		<compatible-package-ids>
+                    			<id>R0603</id>
+                    			<id>R0805</id>
+                    			<id>TQFP-48</id>
+                    		</compatible-package-ids>
+                    	</nozzle-tip>
+                    	<nozzle-tip class="org.openpnp.machine.reference.ReferenceNozzleTip" id="NT2" allow-incompatible-packages="false">
+                    	</nozzle-tip>
+                    </nozzle-tips>
+                </nozzle>
+            </nozzles>
+            <actuators>
+                <actuator class="org.openpnp.machine.reference.ReferenceActuator" id="A1" index="0">
+                    <head-offsets x="10" y="10" z="0" rotation="0" units="Millimeters" />
+                </actuator>
+            </actuators>
+        </head>
+      </heads>
+      <feeders>
+         <feeder class="org.openpnp.machine.reference.feeder.ReferenceTubeFeeder" id="F1" enabled="true" part-id="R0603">
+            <location units="Millimeters" x="0.0" y="0.0" z="0.0" rotation="0.0"/>
+         </feeder>
+         <feeder class="org.openpnp.machine.reference.feeder.ReferenceTubeFeeder" id="F2" enabled="true" part-id="R0805">
+            <location units="Millimeters" x="0.0" y="0.0" z="0.0" rotation="0.0"/>
+         </feeder>
+         <feeder class="org.openpnp.machine.reference.feeder.ReferenceTubeFeeder" id="F3" enabled="true" part-id="TQFP-48">
+            <location units="Millimeters" x="0.0" y="0.0" z="0.0" rotation="0.0"/>
+         </feeder>
+      </feeders>
+   </machine>
+</openpnp-machine>

@@ -1,0 +1,8 @@
+<openpnp-parts>
+   <part id="R0603" name="" height-units="Inches" height="0.1" package-id="R0603">
+   </part>
+   <part id="R0805" name="" height-units="Inches" height="0.2" package-id="R0805">
+   </part>
+   <part id="TQFP-48" name="" height-units="Inches" height="0.3" package-id="TQFP-48">
+   </part>
+</openpnp-parts>
