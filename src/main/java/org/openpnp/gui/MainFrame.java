@@ -78,6 +78,7 @@ import org.openpnp.gui.importer.EagleMountsmdUlpImporter;
 import org.openpnp.gui.importer.KicadPosImporter;
 import org.openpnp.gui.importer.NamedCSVImporter;
 import org.openpnp.gui.importer.SolderPasteGerberImporter;
+import org.openpnp.gui.importer.LabcenterProteusImporter; //
 import org.openpnp.gui.support.HeadCellValue;
 import org.openpnp.gui.support.LengthCellValue;
 import org.openpnp.gui.support.MessageBoxes;
@@ -143,6 +144,7 @@ public class MainFrame extends JFrame {
     private MachineSetupPanel machineSetupPanel;
     private JDialog frameCamera;
     private JDialog frameMachineControls;
+    private Map<KeyStroke, Action> hotkeyActionMap;
 
     public static MainFrame get() {
         return mainFrame;
@@ -194,6 +196,10 @@ public class MainFrame extends JFrame {
 
     public JTabbedPane getTabs() {
         return tabs;
+    }
+
+    public Map<KeyStroke, Action> getHotkeyActionMap() {
+        return hotkeyActionMap;
     }
 
     private Preferences prefs = Preferences.userNodeForPackage(MainFrame.class);
@@ -329,6 +335,14 @@ public class MainFrame extends JFrame {
         buttonGroup.add(menuItem);
         mnLanguage.add(menuItem);
 
+        menuItem = new JCheckBoxMenuItem(new LanguageSelectionAction(new Locale("fr")));
+        buttonGroup.add(menuItem);
+        mnLanguage.add(menuItem);
+		
+        menuItem = new JCheckBoxMenuItem(new LanguageSelectionAction(new Locale("it")));
+        buttonGroup.add(menuItem);
+        mnLanguage.add(menuItem);
+
         for (int i = 0; i < mnLanguage.getItemCount(); i++) {
             JCheckBoxMenuItem item = (JCheckBoxMenuItem) mnLanguage.getItem(i);
             LanguageSelectionAction action = (LanguageSelectionAction) item.getAction();
@@ -390,6 +404,8 @@ public class MainFrame extends JFrame {
         mnHelp.add(setupAndCalibrationLinkAction);
         mnHelp.add(userManualLinkAction);
         mnHelp.addSeparator();
+        mnHelp.add(changeLogAction);
+        mnHelp.addSeparator();
         mnHelp.add(submitDiagnosticsAction);
         if (isInstallerAvailable()) {
             mnHelp.add(new JMenuItem(checkForUpdatesAction));
@@ -410,7 +426,7 @@ public class MainFrame extends JFrame {
         panelMachine.setLayout(new BorderLayout(0, 0));
 
         // Add global hotkeys for the arrow keys
-        final Map<KeyStroke, Action> hotkeyActionMap = new HashMap<>();
+        hotkeyActionMap = new HashMap<>();
 
         int mask = KeyEvent.CTRL_DOWN_MASK;
 
@@ -707,6 +723,7 @@ public class MainFrame extends JFrame {
     }
 
     private void registerBoardImporters() {
+    	registerBoardImporter(LabcenterProteusImporter.class);
         registerBoardImporter(EagleBoardImporter.class);
         registerBoardImporter(EagleMountsmdUlpImporter.class);
         registerBoardImporter(KicadPosImporter.class);
@@ -1064,6 +1081,24 @@ public class MainFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent arg0) {
             String uri = "https://github.com/openpnp/openpnp/wiki/User-Manual"; //$NON-NLS-1$
+            try {
+                if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().browse(new URI(uri));
+                }
+                else {
+                    throw new Exception("Not supported."); //$NON-NLS-1$
+                }
+            }
+            catch (Exception e) {
+                MessageBoxes.errorBox(MainFrame.this, "Unable to launch default browser.", "Unable to launch default browser. Please visit " + uri); //$NON-NLS-1$ //$NON-NLS-2$
+            }
+        }
+    };
+    
+    private Action changeLogAction = new AbstractAction(Translations.getString("Menu.Help.ChangeLog")) { //$NON-NLS-1$
+        @Override
+        public void actionPerformed(ActionEvent arg0) {
+            String uri = "https://github.com/openpnp/openpnp/blob/develop/CHANGES.md"; //$NON-NLS-1$
             try {
                 if (Desktop.isDesktopSupported()) {
                     Desktop.getDesktop().browse(new URI(uri));

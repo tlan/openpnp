@@ -366,6 +366,7 @@ public class JobPlacementsPanel extends JPanel {
 
             placement.setPart(Configuration.get().getParts().get(0));
             placement.setLocation(new Location(Configuration.get().getSystemUnits()));
+            placement.setSide(boardLocation.getSide());
 
             boardLocation.getBoard().addPlacement(placement);
             tableModel.fireTableDataChanged();
@@ -414,9 +415,9 @@ public class JobPlacementsPanel extends JPanel {
     public final Action moveCameraToPlacementLocationNext = new AbstractAction() {
         {
             putValue(SMALL_ICON, Icons.centerCameraMoveNext);
-            putValue(NAME, "Move Camera To Placement Location and Move to Next Part");
+            putValue(NAME, "Move Camera To Next Placement Location ");
             putValue(SHORT_DESCRIPTION,
-                    "Position the camera at the placement's location and move to next part.");
+                    "Position the camera at the next placements location.");
         }
 
         @Override
@@ -425,16 +426,15 @@ public class JobPlacementsPanel extends JPanel {
                 // Need to keep current focus owner so that the space bar can be
                 // used after the initial click. Otherwise, button focus is lost
                 // when table is updated
-                Component comp = MainFrame.get().getFocusOwner();
-                Location location = Utils2D.calculateBoardPlacementLocation(boardLocation,
+               	Component comp = MainFrame.get().getFocusOwner();
+               	Helpers.selectNextTableRow(table);
+                comp.requestFocus();
+               	Location location = Utils2D.calculateBoardPlacementLocation(boardLocation,
                         getSelection().getLocation());
                 Camera camera = MainFrame.get().getMachineControls().getSelectedTool().getHead()
                         .getDefaultCamera();
                 MovableUtils.moveToLocationAtSafeZ(camera, location);
-                Helpers.selectNextTableRow(table);
-                if (comp != null) {
-                    comp.requestFocus();
-                }
+                
             });
         };
     };
@@ -601,6 +601,9 @@ public class JobPlacementsPanel extends JPanel {
 
     static class TypeRenderer extends DefaultTableCellRenderer {
         public void setValue(Object value) {
+            if (value == null) {
+                return;
+            }
             Type type = (Type) value;
             setText(type.name());
             if (type == Type.Fiducial) {
@@ -623,6 +626,9 @@ public class JobPlacementsPanel extends JPanel {
 
     static class StatusRenderer extends DefaultTableCellRenderer {
         public void setValue(Object value) {
+            if (value == null) {
+                return;
+            }
             Status status = (Status) value;
             if (status == Status.Ready) {
                 setBorder(new LineBorder(getBackground()));

@@ -1,7 +1,7 @@
 package org.openpnp.machine.reference.wizards;
 
-import javax.swing.JComboBox;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -17,6 +17,7 @@ import org.openpnp.gui.support.LengthConverter;
 import org.openpnp.gui.support.MessageBoxes;
 import org.openpnp.gui.support.MutableLocationProxy;
 import org.openpnp.machine.chmt36va.CHMT36VADriver;
+import org.openpnp.machine.neoden4.NeoDen4Driver;
 import org.openpnp.machine.openbuilds.OpenBuildsDriver;
 import org.openpnp.machine.reference.ReferenceDriver;
 import org.openpnp.machine.reference.ReferenceMachine;
@@ -24,7 +25,6 @@ import org.openpnp.machine.reference.driver.GcodeDriver;
 import org.openpnp.machine.reference.driver.LinuxCNC;
 import org.openpnp.machine.reference.driver.NullDriver;
 import org.openpnp.model.Configuration;
-import org.simpleframework.xml.Element;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
@@ -75,6 +75,7 @@ public class ReferenceMachineConfigurationWizard extends AbstractConfigurationWi
         comboBoxDriver.addItem(LinuxCNC.class.getCanonicalName());
         comboBoxDriver.addItem(OpenBuildsDriver.class.getCanonicalName());
         comboBoxDriver.addItem(CHMT36VADriver.class.getCanonicalName());
+        comboBoxDriver.addItem(NeoDen4Driver.class.getCanonicalName());
 
         JPanel panelLocations = new JPanel();
         panelLocations.setBorder(new TitledBorder(null, "Locations", TitledBorder.LEADING,
