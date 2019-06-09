@@ -20,8 +20,6 @@
 package org.openpnp.gui.components;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.util.LinkedHashMap;
 import java.util.Map;
