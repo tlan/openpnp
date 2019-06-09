@@ -25,13 +25,10 @@ import java.beans.PropertyChangeSupport;
 import java.net.URL;
 
 import javax.imageio.ImageIO;
-import javax.swing.Action;
 
-import org.openpnp.CameraListener;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.reference.ReferenceCamera;
 import org.openpnp.machine.reference.camera.wizards.ImageCameraConfigurationWizard;
-import org.openpnp.model.Configuration;
 import org.openpnp.model.LengthUnit;
 import org.openpnp.model.Location;
 import org.openpnp.spi.PropertySheetHolder;
@@ -39,11 +36,8 @@ import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.core.Commit;
 
-public class ImageCamera extends ReferenceCamera implements Runnable {
+public class ImageCamera extends ReferenceCamera {
     private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-
-    @Attribute(required = false)
-    private int fps = 24;
 
     @Element
     private String sourceUri = "classpath://samples/pnp-test/pnp-test.png";
@@ -55,8 +49,6 @@ public class ImageCamera extends ReferenceCamera implements Runnable {
     private int height = 480;
 
     private BufferedImage source;
-
-    private Thread thread;
 
     public ImageCamera() {
         setUnitsPerPixel(new Location(LengthUnit.Millimeters, 0.04233, 0.04233, 0, 0));
@@ -72,41 +64,6 @@ public class ImageCamera extends ReferenceCamera implements Runnable {
     @Commit
     private void commit() throws Exception {
         setSourceUri(sourceUri);
-    }
-
-    @Override
-    public synchronized void startContinuousCapture(CameraListener listener) {
-        start();
-        super.startContinuousCapture(listener);
-    }
-
-    @Override
-    public synchronized void stopContinuousCapture(CameraListener listener) {
-        super.stopContinuousCapture(listener);
-        if (listeners.size() == 0) {
-            stop();
-        }
-    }
-
-    private synchronized void stop() {
-        if (thread != null && thread.isAlive()) {
-            thread.interrupt();
-            try {
-                thread.join(3000);
-            }
-            catch (Exception e) {
-
-            }
-            thread = null;
-        }
-    }
-
-    private synchronized void start() {
-        if (thread == null) {
-            thread = new Thread(this);
-            thread.setDaemon(true);
-            thread.start();
-        }
     }
 
     public String getSourceUri() {
@@ -148,32 +105,12 @@ public class ImageCamera extends ReferenceCamera implements Runnable {
     }
 
     private synchronized void initialize() throws Exception {
-        stop();
-
         if (sourceUri.startsWith("classpath://")) {
             source = ImageIO.read(getClass().getClassLoader()
                     .getResourceAsStream(sourceUri.substring("classpath://".length())));
         }
         else {
             source = ImageIO.read(new URL(sourceUri));
-        }
-
-        if (listeners.size() > 0) {
-            start();
-        }
-    }
-
-
-    public void run() {
-        while (!Thread.interrupted()) {
-            BufferedImage frame = internalCapture();
-            broadcastCapture(frame);
-            try {
-                Thread.sleep(1000 / fps);
-            }
-            catch (InterruptedException e) {
-                return;
-            }
         }
     }
 

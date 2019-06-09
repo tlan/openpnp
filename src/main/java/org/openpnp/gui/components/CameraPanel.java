@@ -43,11 +43,6 @@ import org.openpnp.spi.Head;
  */
 @SuppressWarnings("serial")
 public class CameraPanel extends JPanel {
-    private static int maximumFps = 15;
-    private static final String SHOW_NONE_ITEM = "Show None";
-    private static final String SHOW_ALL_ITEM_H = "Show All Horizontal";
-    private static final String SHOW_ALL_ITEM_V = "Show All Vertical";
-
     private Map<Camera, CameraView> cameraViews = new LinkedHashMap<>();
 
     private JComboBox camerasCombo;
@@ -107,13 +102,7 @@ public class CameraPanel extends JPanel {
         camerasCombo.addItem(new CameraItem(camera));
         if (cameraViews.size() == 1) {
             // First camera being added, so select it
-            camerasCombo.setSelectedIndex(1);
-        }
-        else if (cameraViews.size() == 2) {
-            // Otherwise this is the second camera so mix in the
-            // show all item.
-            camerasCombo.insertItemAt(SHOW_ALL_ITEM_H, 1);
-            camerasCombo.insertItemAt(SHOW_ALL_ITEM_V, 2);
+            camerasCombo.setSelectedIndex(0);
         }
     }
     
@@ -142,24 +131,8 @@ public class CameraPanel extends JPanel {
 
         setLayout(new BorderLayout());
 
-        camerasCombo.addItem(SHOW_NONE_ITEM);
-
         add(camerasCombo, BorderLayout.NORTH);
         add(camerasPanel);
-    }
-
-    /**
-     * Make sure the given Camera is visible in the UI. If All Cameras is selected we do nothing,
-     * otherwise we select the specified Camera.
-     * 
-     * @param camera
-     * @return
-     */
-    public void ensureCameraVisible(Camera camera) {
-        if (camerasCombo.getSelectedItem().equals(SHOW_ALL_ITEM_H) || camerasCombo.getSelectedItem().equals(SHOW_ALL_ITEM_V)) {
-            return;
-        }
-        setSelectedCamera(camera);
     }
 
     public CameraView setSelectedCamera(Camera camera) {
@@ -188,50 +161,13 @@ public class CameraPanel extends JPanel {
         public void actionPerformed(ActionEvent ev) {
             selectedCameraView = null;
             camerasPanel.removeAll();
-            if (camerasCombo.getSelectedItem().equals(SHOW_NONE_ITEM)) {
-                camerasPanel.setLayout(new BorderLayout());
-                JPanel panel = new JPanel();
-                panel.setBackground(Color.black);
-                camerasPanel.add(panel);
-                selectedCameraView = null;
-            }
-            else if (camerasCombo.getSelectedItem().equals(SHOW_ALL_ITEM_H) || camerasCombo.getSelectedItem().equals(SHOW_ALL_ITEM_V)) {
-                int rows = (int) Math.ceil(Math.sqrt(cameraViews.size()));
-                if (rows == 0) {
-                    rows = 1;
-                }
-				if (camerasCombo.getSelectedItem().equals(SHOW_ALL_ITEM_H)) {
-					camerasPanel.setLayout(new GridLayout(rows, 0, 1, 1));
-				}
-				else {
-					camerasPanel.setLayout(new GridLayout(0, rows, 1, 1));
-				}
+            camerasPanel.setLayout(new BorderLayout());
+            Camera camera = ((CameraItem) camerasCombo.getSelectedItem()).getCamera();
+            CameraView cameraView = getCameraView(camera);
+            cameraView.setShowName(false);
+            camerasPanel.add(cameraView);
 
-                for (CameraView cameraView : cameraViews.values()) {
-                    cameraView.setShowName(true);
-                    camerasPanel.add(cameraView);
-                    if (cameraViews.size() == 1) {
-                        selectedCameraView = cameraView;
-                    }
-                }
-                if (cameraViews.size() > 2) {
-                    for (int i = 0; i < (rows * rows) - cameraViews.size(); i++) {
-                        JPanel panel = new JPanel();
-                        panel.setBackground(Color.black);
-                        camerasPanel.add(panel);
-                    }
-                }
-                selectedCameraView = null;
-            }
-            else {
-                camerasPanel.setLayout(new BorderLayout());
-                Camera camera = ((CameraItem) camerasCombo.getSelectedItem()).getCamera();
-                CameraView cameraView = getCameraView(camera);
-                cameraView.setShowName(false);
-                camerasPanel.add(cameraView);
-
-                selectedCameraView = cameraView;
-            }
+            selectedCameraView = cameraView;
             revalidate();
             repaint();
         }

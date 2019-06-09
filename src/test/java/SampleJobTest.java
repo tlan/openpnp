@@ -1,11 +1,6 @@
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
 import java.io.File;
 
-import org.jcodec.api.awt.SequenceEncoder;
 import org.junit.Test;
-import org.openpnp.CameraListener;
 import org.openpnp.machine.reference.ReferenceMachine;
 import org.openpnp.machine.reference.ReferencePnpJobProcessor;
 import org.openpnp.machine.reference.driver.NullDriver;
@@ -42,10 +37,6 @@ public class SampleJobTest {
 
         Camera camera = machine.getDefaultHead().getDefaultCamera();
         camera.setSettleTimeMs(0);
-        // File videoFile = new File("target");
-        // videoFile = new File(videoFile, "SampleJobTest.mp4");
-        // MpegEncodingCameraListener encoder = new MpegEncodingCameraListener(videoFile);
-        // camera.startContinuousCapture(encoder, 25);
 
         ReferencePnpJobProcessor jobProcessor = (ReferencePnpJobProcessor) machine.getPnpJobProcessor();
         jobProcessor.addTextStatusListener((text) -> {
@@ -64,40 +55,6 @@ public class SampleJobTest {
         }
         catch (Exception e) {
             e.printStackTrace();
-        }
-        // camera.stopContinuousCapture(encoder);
-        // encoder.finish();
-    }
-
-    public static class MpegEncodingCameraListener implements CameraListener {
-        private SequenceEncoder enc;
-        private boolean finished = false;
-
-        public MpegEncodingCameraListener(File file) throws Exception {
-            enc = new SequenceEncoder(file);
-        }
-
-        @Override
-        public synchronized void frameReceived(BufferedImage img) {
-            if (finished) {
-                return;
-            }
-            try {
-                Graphics g = img.getGraphics();
-                g.setColor(Color.white);
-                g.drawLine(0, img.getHeight() / 2, img.getWidth(), img.getHeight() / 2);
-                g.drawLine(img.getWidth() / 2, 0, img.getWidth() / 2, img.getHeight());
-                g.dispose();
-                enc.encodeImage(img);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        public synchronized void finish() throws Exception {
-            finished = true;
-            enc.finish();
         }
     }
 }

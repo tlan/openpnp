@@ -22,7 +22,6 @@ package org.openpnp.spi;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
 
-import org.openpnp.CameraListener;
 import org.openpnp.model.Location;
 
 /**
@@ -35,7 +34,7 @@ public interface Camera extends HeadMountable, WizardConfigurable,
     }
 
     /**
-     * Get the location of the camera inlcuding the calibrated offset for the given tool.   
+     * Get the location of the camera including the calibrated offset for the given tool.   
      * If the bottom camera focal plane is different from the PCB surface plane, the various
      * tools might introduce slight offsets in X, Y as their Z axes are not perfectly parallel.
      * This offset is compensated if the getLocation(tool) method is used instead of the plain
@@ -79,21 +78,17 @@ public interface Camera extends HeadMountable, WizardConfigurable,
      * @return
      */
     public BufferedImage settleAndCapture();
-
+    
     /**
-     * Registers a listener to receive continuous images from the camera.
+     * Captures an image for preview by the user. This image is generally the same as that
+     * returned by capture() but scripts will not be run and lighting will not be controlled.
      * 
-     * @param listener
-     */
-    public void startContinuousCapture(CameraListener listener);
-
-    /**
-     * Requests that the continuous capture be stopped for the previously registered listener. If
-     * the Camera has other listeners they should still receive updates.
+     * This method is intended to be called more often than capture(), as often as the supported
+     * camera's FPS allows for.
      * 
-     * @param listener
+     * @return
      */
-    public void stopContinuousCapture(CameraListener listener);
+    public BufferedImage captureForPreview();
 
     public void setVisionProvider(VisionProvider visionProvider);
 

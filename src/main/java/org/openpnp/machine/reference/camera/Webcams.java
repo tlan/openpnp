@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.openpnp.CameraListener;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.reference.ReferenceCamera;
 import org.openpnp.machine.reference.camera.wizards.WebcamConfigurationWizard;
@@ -36,12 +35,10 @@ import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamImageTransformer;
 import com.github.sarxos.webcam.util.jh.JHGrayFilter;
 
-
-
 /**
  * A Camera implementation based on the OpenCV FrameGrabbers.
  */
-public class Webcams extends ReferenceCamera implements Runnable, WebcamImageTransformer {
+public class Webcams extends ReferenceCamera implements WebcamImageTransformer {
 
     @Attribute(required = false)
     protected String deviceId = "###DEVICE###";
@@ -52,12 +49,9 @@ public class Webcams extends ReferenceCamera implements Runnable, WebcamImageTra
     private int preferredHeight = 0;
 
     protected Webcam webcam;
-    private Thread thread;
     private boolean forceGray;
-    private BufferedImage image;
 
     private static final JHGrayFilter GRAY = new JHGrayFilter();
-
 
     @Override
     public BufferedImage transform(BufferedImage image) {
@@ -70,10 +64,7 @@ public class Webcams extends ReferenceCamera implements Runnable, WebcamImageTra
 
     @Override
     public synchronized BufferedImage internalCapture() {
-        if (thread == null) {
-            setDeviceId(deviceId);
-        }
-        if (thread == null) {
+        if (!ensureOpen()) {
             return null;
         }
         try {
@@ -85,58 +76,26 @@ public class Webcams extends ReferenceCamera implements Runnable, WebcamImageTra
         }
     }
 
-    @Override
-    public synchronized void startContinuousCapture(CameraListener listener) {
-        if (thread == null) {
-            setDeviceId(deviceId);
+    public synchronized boolean ensureOpen() {
+        if (webcam == null || !webcam.isOpen()) {
+            open();
         }
-        super.startContinuousCapture(listener);
-    }
-
-    private BufferedImage lastImage = null;
-    private BufferedImage redImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-
-
-    public void run() {
-        while (!Thread.interrupted()) {
-            try {
-                BufferedImage image = internalCapture();
-                if (image == null) {
-                    image = redImage;
-                }
-                broadcastCapture(image);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                Thread.sleep(1000 / 30);
-            }
-            catch (InterruptedException e) {
-                break;
-            }
-        }
+        return webcam != null && webcam.isOpen();
     }
 
     public String getDeviceId() {
         return deviceId;
     }
+    
+    public synchronized void open() {
+        setDeviceId(deviceId);
+    }
 
     public synchronized void setDeviceId(String deviceId) {
         this.deviceId = deviceId;
-        if (thread != null) {
-            thread.interrupt();
-            try {
-                thread.join(3000);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-            thread = null;
-            webcam.close();
-        }
+        webcam.close();
+        webcam = null;
         try {
-            webcam = null;
             for (Webcam cam : Webcam.getWebcams()) {
                 if (cam.getName().equals(deviceId)) {
                     webcam = cam;
@@ -157,9 +116,6 @@ public class Webcams extends ReferenceCamera implements Runnable, WebcamImageTra
             e.printStackTrace();
             return;
         }
-        thread = new Thread(this);
-        thread.setDaemon(true);
-        thread.start();
     }
 
     public void setForceGray(boolean val) {
@@ -215,15 +171,6 @@ public class Webcams extends ReferenceCamera implements Runnable, WebcamImageTra
     @Override
     public void close() throws IOException {
         super.close();
-        if (thread != null) {
-            thread.interrupt();
-            try {
-                thread.join(3000);
-            }
-            catch (Exception e) {
-
-            }
-            webcam.close();
-        }
+        webcam.close();
     }
 }

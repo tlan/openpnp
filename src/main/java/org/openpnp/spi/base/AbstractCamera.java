@@ -1,12 +1,8 @@
 package org.openpnp.spi.base;
 
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import javax.swing.Icon;
 
@@ -14,7 +10,6 @@ import org.opencv.core.Core;
 import org.opencv.core.Core.MinMaxLocResult;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
-import org.openpnp.CameraListener;
 import org.openpnp.ConfigurationListener;
 import org.openpnp.gui.support.Icons;
 import org.openpnp.model.AbstractModelObject;
@@ -48,8 +43,6 @@ public abstract class AbstractCamera extends AbstractModelObject implements Came
 
     @Attribute(required = false)
     protected long settleTimeMs = 250;
-
-    protected Set<ListenerEntry> listeners = Collections.synchronizedSet(new HashSet<>());
 
     protected Head head;
 
@@ -140,16 +133,6 @@ public abstract class AbstractCamera extends AbstractModelObject implements Came
     }
 
     @Override
-    public void startContinuousCapture(CameraListener listener) {
-        listeners.add(new ListenerEntry(listener));
-    }
-
-    @Override
-    public void stopContinuousCapture(CameraListener listener) {
-        listeners.remove(new ListenerEntry(listener));
-    }
-
-    @Override
     public void setVisionProvider(VisionProvider visionProvider) {
         this.visionProvider = visionProvider;
         visionProvider.setCamera(this);
@@ -225,12 +208,6 @@ public abstract class AbstractCamera extends AbstractModelObject implements Came
         }
     }
 
-    protected void broadcastCapture(BufferedImage img) {
-        for (ListenerEntry listener : new ArrayList<>(listeners)) {
-            listener.listener.frameReceived(img);
-        }
-    }
-
     public long getSettleTimeMs() {
         return settleTimeMs;
     }
@@ -257,24 +234,5 @@ public abstract class AbstractCamera extends AbstractModelObject implements Came
     @Override
     public String toString() {
         return getName();
-    }
-    
-    protected class ListenerEntry {
-        public CameraListener listener;
-        public long lastFrameSent;
-
-        public ListenerEntry(CameraListener listener) {
-            this.listener = listener;
-        }
-
-        @Override
-        public int hashCode() {
-            return listener.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj.equals(listener);
-        }
     }
 }

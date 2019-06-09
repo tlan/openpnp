@@ -6,7 +6,6 @@ import javax.swing.Icon;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openpnp.CameraListener;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.model.LengthUnit;
 import org.openpnp.model.Location;
@@ -145,13 +144,8 @@ public class VisionUtilsTest {
         }
 
         @Override
-        public void startContinuousCapture(CameraListener listener) {
-
-        }
-
-        @Override
-        public void stopContinuousCapture(CameraListener listener) {
-
+        public BufferedImage captureForPreview() {
+            return null;
         }
 
         @Override

@@ -1251,7 +1251,7 @@ public class JobPanel extends JPanel {
                     UiUtils.submitUiMachineTask(() -> {
                         HeadMountable tool = MainFrame.get().getMachineControls().getSelectedTool();
                         Camera camera = tool.getHead().getDefaultCamera();
-                        MainFrame.get().getCameraViews().ensureCameraVisible(camera);
+                        MainFrame.get().getCameraViews().setSelectedCamera(camera);
                         Location location = getSelection().getLocation();
                         MovableUtils.moveToLocationAtSafeZ(camera, location);
                     });
@@ -1277,7 +1277,7 @@ public class JobPanel extends JPanel {
                     	comp.requestFocus();
                        HeadMountable tool = MainFrame.get().getMachineControls().getSelectedTool();
                         Camera camera = tool.getHead().getDefaultCamera();
-                        MainFrame.get().getCameraViews().ensureCameraVisible(camera);
+                        MainFrame.get().getCameraViews().setSelectedCamera(camera);
                         Location location = getSelection().getLocation();
                         
                         MovableUtils.moveToLocationAtSafeZ(camera, location);
@@ -1335,7 +1335,7 @@ public class JobPanel extends JPanel {
                 refreshSelectedBoardRow();
                 HeadMountable tool = MainFrame.get().getMachineControls().getSelectedTool();
                 Camera camera = tool.getHead().getDefaultCamera();
-                MainFrame.get().getCameraViews().ensureCameraVisible(camera);
+                MainFrame.get().getCameraViews().setSelectedCamera(camera);
                 MovableUtils.moveToLocationAtSafeZ(camera, location);
             });
         }
@@ -1396,7 +1396,7 @@ public class JobPanel extends JPanel {
                 refreshSelectedBoardRow();
                 HeadMountable tool = MainFrame.get().getMachineControls().getSelectedTool();
                 Camera camera = tool.getHead().getDefaultCamera();
-                MainFrame.get().getCameraViews().ensureCameraVisible(camera);
+                MainFrame.get().getCameraViews().setSelectedCamera(camera);
                 MovableUtils.moveToLocationAtSafeZ(camera, location);
 
             });

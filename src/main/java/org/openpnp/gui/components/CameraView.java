@@ -59,7 +59,6 @@ import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
-import org.openpnp.CameraListener;
 import org.openpnp.gui.MainFrame;
 import org.openpnp.gui.components.reticle.Reticle;
 import org.openpnp.model.Configuration;
@@ -72,7 +71,7 @@ import org.openpnp.util.XmlSerialize;
 import org.pmw.tinylog.Logger;
 
 @SuppressWarnings("serial")
-public class CameraView extends JComponent implements CameraListener {
+public class CameraView extends JComponent {
     private static final String PREF_RETICLE = "CamerView.reticle";
 
     private static final String DEFAULT_RETICLE_KEY = "DEFAULT_RETICLE_KEY";
@@ -207,8 +206,6 @@ public class CameraView extends JComponent implements CameraListener {
 
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-        // TODO: Cancel this when it's not being used instead of spinning,
-        // or maybe create a real thread and wait().
         scheduledExecutor.scheduleAtFixedRate(new Runnable() {
             public void run() {
                 if (selectionEnabled && selection != null) {
@@ -222,6 +219,14 @@ public class CameraView extends JComponent implements CameraListener {
                 }
             }
         }, 0, 50, TimeUnit.MILLISECONDS);
+        
+        scheduledExecutor.scheduleAtFixedRate(new Runnable() {
+            public void run() {
+                if (isShowing() && camera != null) {
+                    frameReceived(camera.captureForPreview());
+                }
+            }
+        }, 0, 1000 / 10, TimeUnit.MILLISECONDS);
     }
     
     private String getReticlePrefKey() {
@@ -239,16 +244,7 @@ public class CameraView extends JComponent implements CameraListener {
     }
 
     public void setCamera(Camera camera) {
-        // turn off capture for the camera we are replacing, if any
-        if (this.camera != null) {
-            this.camera.stopContinuousCapture(this);
-        }
         this.camera = camera;
-        // turn on capture for the new camera
-        if (this.camera != null) {
-            this.camera.startContinuousCapture(this);
-        }
-        // load the reticle pref, if any
         try {
             String reticleXml = prefs.get(getReticlePrefKey(), null);
             Reticle reticle = (Reticle) XmlSerialize.deserialize(reticleXml);
@@ -433,7 +429,6 @@ public class CameraView extends JComponent implements CameraListener {
         return selection;
     }
 
-    @Override
     public void frameReceived(BufferedImage img) {
         if (cameraViewFilter != null) {
             img = cameraViewFilter.filterCameraImage(camera, img);

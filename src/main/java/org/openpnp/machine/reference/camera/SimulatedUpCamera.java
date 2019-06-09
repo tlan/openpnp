@@ -10,7 +10,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
-import org.openpnp.CameraListener;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.reference.ReferenceCamera;
 import org.openpnp.machine.reference.camera.wizards.SimulatedUpCameraConfigurationWizard;
@@ -28,15 +27,11 @@ import org.simpleframework.xml.Root;
 
 
 @Root
-public class SimulatedUpCamera extends ReferenceCamera implements Runnable {
+public class SimulatedUpCamera extends ReferenceCamera {
     protected int width = 1280;
 
     protected int height = 1280;
 
-    protected int fps = 10;
-
-    private Thread thread;
-    
     @Element(required=false)
     private Location errorOffsets = new Location(LengthUnit.Millimeters);
 
@@ -152,54 +147,6 @@ public class SimulatedUpCamera extends ReferenceCamera implements Runnable {
 
     public void setErrorOffsets(Location errorOffsets) {
         this.errorOffsets = errorOffsets;
-    }
-
-    @Override
-    public synchronized void startContinuousCapture(CameraListener listener) {
-        start();
-        super.startContinuousCapture(listener);
-    }
-
-    @Override
-    public synchronized void stopContinuousCapture(CameraListener listener) {
-        super.stopContinuousCapture(listener);
-        if (listeners.size() == 0) {
-            stop();
-        }
-    }
-
-    private synchronized void stop() {
-        if (thread != null && thread.isAlive()) {
-            thread.interrupt();
-            try {
-                thread.join(3000);
-            }
-            catch (Exception e) {
-
-            }
-            thread = null;
-        }
-    }
-
-    private synchronized void start() {
-        if (thread == null) {
-            thread = new Thread(this);
-            thread.setDaemon(true);
-            thread.start();
-        }
-    }
-
-    public void run() {
-        while (!Thread.interrupted()) {
-            BufferedImage frame = internalCapture();
-            broadcastCapture(frame);
-            try {
-                Thread.sleep(1000 / fps);
-            }
-            catch (InterruptedException e) {
-                return;
-            }
-        }
     }
 
     @Override

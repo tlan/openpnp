@@ -22,7 +22,6 @@ package org.openpnp.machine.reference.camera;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -39,7 +38,6 @@ import org.onvif.ver10.schema.VideoEncoderConfigurationOptions;
 import org.onvif.ver10.schema.VideoEncoding;
 import org.onvif.ver10.schema.VideoRateControl;
 import org.onvif.ver10.schema.VideoResolution;
-import org.openpnp.CameraListener;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.reference.ReferenceCamera;
 import org.openpnp.machine.reference.camera.wizards.OnvifIPCameraConfigurationWizard;
@@ -53,7 +51,7 @@ import de.onvif.soap.devices.MediaDevices;
 /**
  * A Camera implementation for ONVIF compatible IP cameras.
  */
-public class OnvifIPCamera extends ReferenceCamera implements Runnable {
+public class OnvifIPCamera extends ReferenceCamera {
 
     @Attribute(required = false)
     private String preferredResolution;
@@ -72,7 +70,6 @@ public class OnvifIPCamera extends ReferenceCamera implements Runnable {
     @Attribute(required = false)
     private String password;
 
-    private Thread thread;
     private boolean dirty = false;
 
     private OnvifDevice nvt;
@@ -82,9 +79,7 @@ public class OnvifIPCamera extends ReferenceCamera implements Runnable {
 
     @Override
     public BufferedImage internalCapture() {
-        if (thread == null) {
-            initCamera();
-        }
+        ensureOpen();
         try {
             if (snapshotURI == null) {
                 return null;
@@ -122,34 +117,12 @@ public class OnvifIPCamera extends ReferenceCamera implements Runnable {
         return src;
     }
 
-    @Override
-    public synchronized void startContinuousCapture(CameraListener listener) {
-        if (thread == null) {
-            initCamera();
-        }
-        super.startContinuousCapture(listener);
-    }
-
-    public void run() {
-        while (!Thread.interrupted()) {
-            try {
-                BufferedImage image = internalCapture();
-                if (image != null) {
-                    broadcastCapture(image);
-                }
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                Thread.sleep(1000 / fps);
-            }
-            catch (InterruptedException e) {
-                break;
-            }
+    public synchronized void ensureOpen() {
+        if (nvt == null) {
+            open();
         }
     }
-
+    
     private Profile findJPEGProfile(InitialDevices devices) throws Exception {
         List<Profile> profiles = devices.getProfiles();
 
@@ -164,17 +137,7 @@ public class OnvifIPCamera extends ReferenceCamera implements Runnable {
         throw new Exception("No JPEG profiles available for camera at " + hostIP);
     }
 
-    private void initCamera() {
-        if (thread != null) {
-            thread.interrupt();
-            try {
-                thread.join(3000);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-            thread = null;
-        }
+    private synchronized void open() {
         try {
             setDirty(false);
             width = null;
@@ -280,29 +243,10 @@ public class OnvifIPCamera extends ReferenceCamera implements Runnable {
             e.printStackTrace();
             return;
         }
-        thread = new Thread(this);
-        thread.setDaemon(true);
-        thread.start();
-    }
-
-    @Override
-    public void close() throws IOException {
-        super.close();
-        if (thread != null) {
-            thread.interrupt();
-            try {
-                thread.join(3000);
-            }
-            catch (Exception e) {
-
-            }
-        }
     }
 
     public List<VideoResolution> getSupportedResolutions() {
-        if (thread == null) {
-            initCamera();
-        }
+        ensureOpen();
         if (nvt == null) {
             return null;
         }
@@ -345,7 +289,7 @@ public class OnvifIPCamera extends ReferenceCamera implements Runnable {
         this.hostIP = hostIP;
         setDirty(true);
 
-        initCamera();
+        open();
     }
 
     public String getUsername() {

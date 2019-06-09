@@ -146,6 +146,11 @@ public abstract class ReferenceCamera extends AbstractCamera implements Referenc
         return image;
     }
     
+    @Override
+    public BufferedImage captureForPreview() {
+        return safeInternalCapture();
+    }
+
     protected abstract BufferedImage internalCapture();
     
     /**
