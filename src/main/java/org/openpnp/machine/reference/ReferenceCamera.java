@@ -135,6 +135,7 @@ public abstract class ReferenceCamera extends AbstractCamera implements Referenc
             Logger.warn(e);
         }
         BufferedImage image = safeInternalCapture();
+        image = transformImage(image);
         try {
             Map<String, Object> globals = new HashMap<>();
             globals.put("camera", this);
@@ -148,10 +149,10 @@ public abstract class ReferenceCamera extends AbstractCamera implements Referenc
     
     @Override
     public BufferedImage captureForPreview() {
-        return safeInternalCapture();
+        return transformImage(safeInternalCapture());
     }
 
-    protected abstract BufferedImage internalCapture();
+    public abstract BufferedImage internalCapture();
     
     /**
      * Wraps internalCapture() to ensure that a null image is never returned. Attempts to
@@ -167,7 +168,6 @@ public abstract class ReferenceCamera extends AbstractCamera implements Referenc
             if (image != null) {
                 return image;
             }
-            Logger.trace("Camera {} failed to return an image. Retrying.", this);
         }
         if (CAPTURE_ERROR_IMAGE == null) {
             CAPTURE_ERROR_IMAGE = new BufferedImage(640, 480, BufferedImage.TYPE_INT_ARGB);
@@ -179,7 +179,6 @@ public abstract class ReferenceCamera extends AbstractCamera implements Referenc
             g.drawLine(640, 0, 0, 480);
             g.dispose();
         }
-        Logger.warn("Camera {} failed to return an image after {} tries.", this, CAPTURE_RETRY_COUNT);
         return CAPTURE_ERROR_IMAGE;
     }
     

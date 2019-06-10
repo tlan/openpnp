@@ -89,7 +89,7 @@ public interface Camera extends HeadMountable, WizardConfigurable,
      * @return
      */
     public BufferedImage captureForPreview();
-
+    
     public void setVisionProvider(VisionProvider visionProvider);
 
     /**

@@ -101,7 +101,7 @@ public class ImageCamera extends ReferenceCamera {
 
         gFrame.dispose();
 
-        return transformImage(frame);
+        return frame;
     }
 
     private synchronized void initialize() throws Exception {

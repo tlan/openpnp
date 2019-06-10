@@ -91,8 +91,6 @@ public class OpenPnpCaptureCameraConfigurationWizard extends AbstractConfigurati
     private JCheckBox whiteBalanceAuto;
     private JCheckBox gainAuto;
     private JSlider gainSlider;
-    private JLabel lblFps;
-    private JTextField fps;
     private JTextField exposureValue;
     private JTextField whiteBalanceValue;
     private JTextField focusValue;
@@ -185,8 +183,6 @@ public class OpenPnpCaptureCameraConfigurationWizard extends AbstractConfigurati
                 FormSpecs.RELATED_GAP_ROWSPEC,
                 FormSpecs.DEFAULT_ROWSPEC,
                 FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,
-                FormSpecs.RELATED_GAP_ROWSPEC,
                 FormSpecs.DEFAULT_ROWSPEC,}));
         
                 lblDevice = new JLabel("Device");
@@ -200,14 +196,6 @@ public class OpenPnpCaptureCameraConfigurationWizard extends AbstractConfigurati
                                 
                                         formatCb = new JComboBox();
                                         panelGeneral.add(formatCb, "4, 4");
-                                        
-                                                lblFps = new JLabel("Preview FPS");
-                                                panelGeneral.add(lblFps, "2, 6, right, default");
-                                                
-                                                        fps = new JTextField();
-                                                        fps.setToolTipText("<html>\nFrame rate for live camera view. Lower uses less CPU and does not affect vision speed.\n<br>0 will update the camera view only when vision or machine movement happens.\n<br>10 FPS is a good starting point.\n</html>\n");
-                                                        panelGeneral.add(fps, "4, 6");
-                                                        fps.setColumns(10);
                         
                                 deviceCb.addActionListener(l -> {
                                     formatCb.removeAllItems();
@@ -629,8 +617,6 @@ public class OpenPnpCaptureCameraConfigurationWizard extends AbstractConfigurati
         addWrappedBinding(camera, "device", deviceCb, "selectedItem");
         addWrappedBinding(camera, "format", formatCb, "selectedItem");
 
-        addWrappedBinding(camera, "fps", fps, "text", doubleConverter);
-
         bindProperty("backLightCompensation", backLightCompensationAuto, backLightCompensationMin, 
                 backLightCompensationMax, backLightCompensationSlider,
                 backLightCompensation, backLightCompensationValue, backLightCompensationDefault);
@@ -653,8 +639,6 @@ public class OpenPnpCaptureCameraConfigurationWizard extends AbstractConfigurati
         bindProperty("whiteBalance", whiteBalanceAuto, whiteBalanceMin, whiteBalanceMax,
                 whiteBalanceSlider, whiteBalance, whiteBalanceValue, whiteBalanceDefault);
         bindProperty("zoom", zoomAuto, zoomMin, zoomMax, zoomSlider, zoom, zoomValue, zoomDefault);
-
-        ComponentDecorators.decorateWithAutoSelect(fps);
     }
 
     private void bindProperty(String property, JCheckBox auto, JLabel min, JLabel max,

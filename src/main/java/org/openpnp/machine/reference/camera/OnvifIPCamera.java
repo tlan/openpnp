@@ -79,16 +79,16 @@ public class OnvifIPCamera extends ReferenceCamera {
 
     @Override
     public BufferedImage internalCapture() {
-        ensureOpen();
+        if (!ensureOpen()) {
+            return null;
+        }
         try {
             if (snapshotURI == null) {
                 return null;
             }
-            BufferedImage img = ImageIO.read(snapshotURI);
-            return transformImage(resizeImage(img));
+            return ImageIO.read(snapshotURI);
         }
         catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
     }
@@ -117,10 +117,11 @@ public class OnvifIPCamera extends ReferenceCamera {
         return src;
     }
 
-    public synchronized void ensureOpen() {
+    public synchronized boolean ensureOpen() {
         if (nvt == null) {
             open();
         }
+        return nvt != null;
     }
     
     private Profile findJPEGProfile(InitialDevices devices) throws Exception {

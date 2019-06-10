@@ -52,6 +52,8 @@ public class Webcams extends ReferenceCamera implements WebcamImageTransformer {
     private boolean forceGray;
 
     private static final JHGrayFilter GRAY = new JHGrayFilter();
+    
+    private boolean closed = false;
 
     @Override
     public BufferedImage transform(BufferedImage image) {
@@ -68,8 +70,7 @@ public class Webcams extends ReferenceCamera implements WebcamImageTransformer {
             return null;
         }
         try {
-            BufferedImage img = webcam.getImage();
-            return transformImage(img);
+            return webcam.getImage();
         }
         catch (Exception e) {
             return null;
@@ -77,6 +78,10 @@ public class Webcams extends ReferenceCamera implements WebcamImageTransformer {
     }
 
     public synchronized boolean ensureOpen() {
+        if (closed) {
+            return false;
+        }
+        
         if (webcam == null || !webcam.isOpen()) {
             open();
         }
@@ -93,8 +98,12 @@ public class Webcams extends ReferenceCamera implements WebcamImageTransformer {
 
     public synchronized void setDeviceId(String deviceId) {
         this.deviceId = deviceId;
-        webcam.close();
-        webcam = null;
+        if (webcam != null) {
+            if (webcam.isOpen()) {
+                webcam.close();
+            }
+            webcam = null;
+        }
         try {
             for (Webcam cam : Webcam.getWebcams()) {
                 if (cam.getName().equals(deviceId)) {
@@ -169,8 +178,10 @@ public class Webcams extends ReferenceCamera implements WebcamImageTransformer {
 
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         super.close();
         webcam.close();
+        webcam = null;
+        closed = true;
     }
 }

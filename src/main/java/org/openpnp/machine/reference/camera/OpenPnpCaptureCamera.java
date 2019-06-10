@@ -23,7 +23,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 
-import org.openpnp.ConfigurationListener;
 import org.openpnp.capture.CaptureDevice;
 import org.openpnp.capture.CaptureFormat;
 import org.openpnp.capture.CaptureProperty;
@@ -34,10 +33,6 @@ import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.reference.ReferenceCamera;
 import org.openpnp.machine.reference.camera.wizards.OpenPnpCaptureCameraConfigurationWizard;
 import org.openpnp.model.AbstractModelObject;
-import org.openpnp.model.Configuration;
-import org.openpnp.spi.Head;
-import org.openpnp.spi.Machine;
-import org.openpnp.spi.MachineListener;
 import org.openpnp.spi.PropertySheetHolder;
 import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Attribute;
@@ -56,9 +51,6 @@ public class OpenPnpCaptureCamera extends ReferenceCamera {
 
     @Attribute(required = false)
     private Integer formatId;
-
-    @Attribute(required = false)
-    private double fps = 10.;
 
     @Element(required = false)
     private CapturePropertyHolder backLightCompensation = new CapturePropertyHolder(CaptureProperty.BackLightCompensation);
@@ -99,36 +91,9 @@ public class OpenPnpCaptureCamera extends ReferenceCamera {
     @Element(required = false)
     private CapturePropertyHolder zoom = new CapturePropertyHolder(CaptureProperty.Zoom);
     
-    // Calling notifyAll on this object will wake the stream thread for one loop to broadcast
-    // a new image.
-    private Object captureNotifier = new Object();
+    private boolean closed = false;
 
     public OpenPnpCaptureCamera() {
-        // TODO Seems silly this has to be in every implementation. Should Camera implement MachineListener
-        // and every camera gets added as a listener automatically? And we codify the notifyCapture()
-        // system in some way? Seems like the entire broadcast system should move into a base class?
-        Configuration.get().addListener(new ConfigurationListener.Adapter() {
-            @Override
-            public void configurationComplete(Configuration configuration) throws Exception {
-                Configuration.get().getMachine().addListener(new MachineListener.Adapter() {
-                    public void notifyCapture() {
-                        synchronized(captureNotifier) {
-                            captureNotifier.notifyAll();
-                        }
-                    }
-                    
-                    @Override
-                    public void machineHeadActivity(Machine machine, Head head) {
-                        notifyCapture();
-                    }
-
-                    @Override
-                    public void machineEnabled(Machine machine) {
-                        notifyCapture();
-                    }
-                });
-            }
-        });
     }
 
     @Commit
@@ -154,25 +119,28 @@ public class OpenPnpCaptureCamera extends ReferenceCamera {
 
     @Override
     public synchronized BufferedImage internalCapture() {
-        ensureOpen();
+        if (!ensureOpen()) {
+            return null;
+        }
         try {
             while (!stream.hasNewFrame()) {
                 Thread.yield();
             }
-            BufferedImage img = stream.capture();
-            img = transformImage(img);
-            return img;
+            return stream.capture();
         }
         catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
     }
 
-    public synchronized void ensureOpen() {
+    public synchronized boolean ensureOpen() {
+        if (closed) {
+            return false;
+        }
         if (stream == null) {
             open();
         }
+        return stream != null;
     }
 
     public synchronized void open() {
@@ -270,6 +238,8 @@ public class OpenPnpCaptureCamera extends ReferenceCamera {
         stream = null;
 
         capture.close();
+        
+        closed = true;
     }
 
     @Override
@@ -315,14 +285,6 @@ public class OpenPnpCaptureCamera extends ReferenceCamera {
             this.formatId = format.getFormatId();
         }
         firePropertyChange("format", null, format);
-    }
-
-    public double getFps() {
-        return fps;
-    }
-
-    public void setFps(double fps) {
-        this.fps = fps;
     }
 
     public CapturePropertyHolder getBackLightCompensation() {

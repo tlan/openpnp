@@ -60,19 +60,22 @@ public class OpenCvCamera extends ReferenceCamera {
 
     private VideoCapture fg = new VideoCapture();
     private boolean dirty = false;
+    
+    private boolean closed = false;
 
     public OpenCvCamera() {}
 
     @Override
     public synchronized BufferedImage internalCapture() {
-        ensureOpen();
+        if (!ensureOpen()) {
+            return null;
+        }
         Mat mat = new Mat();
         try {
             if (!fg.read(mat)) {
                 return null;
             }
-            BufferedImage img = OpenCvUtils.toBufferedImage(mat);
-            return transformImage(img);
+            return OpenCvUtils.toBufferedImage(mat);
         }
         catch (Exception e) {
             return null;
@@ -82,10 +85,14 @@ public class OpenCvCamera extends ReferenceCamera {
         }
     }
     
-    public synchronized void ensureOpen() {
+    public synchronized boolean ensureOpen() {
+        if (closed) {
+            return false;
+        }
         if (!fg.isOpened()) {
             open();
         }
+        return fg.isOpened();
     }
 
     private synchronized void open() {
@@ -151,11 +158,12 @@ public class OpenCvCamera extends ReferenceCamera {
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         super.close();
         if (fg.isOpened()) {
             fg.release();
         }
+        closed = true;
     }
     
     public double getOpenCvCapturePropertyValue(OpenCvCaptureProperty property) {
