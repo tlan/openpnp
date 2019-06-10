@@ -62,6 +62,9 @@ public class SwitcherCamera extends ReferenceCamera {
             if (switchers.get(switcher) != this) {
                 try {
                     if (Configuration.get().getMachine().isEnabled()) {
+                        // TODO STOPSHIP oh god, this needs to be a machine task.
+                        // and it can't be, cause the most likely place for it to be called is from
+                        // within a machine task...
                         actuator.actuate(actuatorDoubleValue);
                         Thread.sleep(actuatorDelayMillis);
                         switchers.put(switcher, this);

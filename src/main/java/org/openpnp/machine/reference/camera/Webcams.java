@@ -64,6 +64,15 @@ public class Webcams extends ReferenceCamera implements WebcamImageTransformer {
 
     }
 
+    // TODO STOPSHIP
+    // TODO STOPSHIP
+    // TODO STOPSHIP
+    // TODO STOPSHIP
+    // TODO STOPSHIP make sure open, close, loading correct camera on startup, and not crashing on close for all cameras.
+    // TODO STOPSHIP
+    // TODO STOPSHIP
+    // TODO STOPSHIP
+    
     @Override
     public synchronized BufferedImage internalCapture() {
         if (!ensureOpen()) {
